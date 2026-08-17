@@ -21,9 +21,27 @@ lms log stream --source model --filter output --stats --json
 The exporter extracts numerical statistics and intentionally does **not**
 persist or expose prompts, responses, tool arguments, or request IDs.
 
+## Platform status
+
+| Platform | Status | Notes |
+| --- | --- | --- |
+| macOS Apple Silicon (arm64) | **Tested** | Validated with LM Studio/llmster and a real MLX inference workload. |
+| macOS Intel (amd64) | Expected to work | Not currently tested. |
+| Linux amd64 | Expected to work | Not currently tested. |
+| Linux arm64 | Expected to work | Not currently tested. |
+
+The exporter is written in portable Go and does not intentionally depend on
+macOS-specific APIs. Linux support is therefore expected, provided the installed
+LM Studio/llmster release exposes the same `lms` CLI commands and JSON fields.
+However, Linux has **not yet been validated on real hardware**, so it should not
+be considered a tested platform for this release.
+
+Linux users who try the exporter are encouraged to report successful setups or
+compatibility issues.
+
 ## Requirements
 
-- macOS or Linux with LM Studio/llmster and `lms` installed.
+- LM Studio/llmster with the `lms` CLI installed.
 - Go 1.23+ to build from source.
 - LM Studio with JSON log streaming and prediction statistics support. LM
   Studio introduced log-stream JSON/stats in 0.3.26 and model generation/queue
@@ -110,7 +128,6 @@ Exporter self-monitoring:
 - `lmstudio_exporter_build_info`
 - `lmstudio_exporter_poll_success`
 - `lmstudio_exporter_last_poll_timestamp_seconds`
-- `lmstudio_exporter_log_stream_enabled`
 - `lmstudio_exporter_log_stream_up`
 - `lmstudio_exporter_log_events_total`
 - `lmstudio_exporter_log_parse_errors_total`

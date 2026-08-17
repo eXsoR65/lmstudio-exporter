@@ -1,0 +1,33 @@
+groups:
+  - name: lmstudio-exporter
+    rules:
+      - alert: LMStudioDown
+        expr: lmstudio_up == 0
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: LM Studio/llmster is not running
+
+      - alert: LMStudioExporterPollFailed
+        expr: lmstudio_exporter_poll_success == 0
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: LM Studio exporter cannot poll the lms CLI
+
+      - alert: LMStudioLogStreamDown
+        expr: lmstudio_exporter_log_stream_enabled == 1 and lmstudio_exporter_log_stream_up == 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: LM Studio inference-stat log stream is unavailable
+
+      - alert: LMStudioLogParseErrors
+        expr: increase(lmstudio_exporter_log_parse_errors_total[10m]) > 0
+        labels:
+          severity: warning
+        annotations:
+          summary: LM Studio exporter is seeing unparseable log-stream events

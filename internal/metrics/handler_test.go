@@ -11,7 +11,7 @@ import (
 func TestMetricsOutput(t *testing.T) {
 	store := NewStore("0.1.0", "abc123", "2026-08-17T00:00:00Z")
 	store.SetLogStreamEnabled(true)
-	store.SetPoll(lms.DaemonStatus{Running: true, PID: 42}, []lms.Model{{Identifier: "qwen/test", Type: "LLM", Generating: true, QueueDepth: 2}}, true)
+	store.SetPoll(lms.DaemonStatus{Running: true, PID: 42}, []lms.Model{{Identifier: "qwen/test", Type: "LLM", Generating: true, QueueDepth: 2, ContextLength: 1000}}, true)
 	store.ObservePrediction(lms.PredictionStats{
 		Model:              "qwen/test",
 		InputTokens:        100,
@@ -34,6 +34,10 @@ func TestMetricsOutput(t *testing.T) {
 		`lmstudio_model_queue_depth{model="qwen/test",type="LLM"} 2`,
 		`lmstudio_requests_total{model="qwen/test"} 1`,
 		`lmstudio_input_tokens_total{model="qwen/test"} 100`,
+		`lmstudio_input_tokens_last{model="qwen/test"} 100`,
+		`lmstudio_output_tokens_last{model="qwen/test"} 20`,
+		`lmstudio_context_tokens_last{model="qwen/test"} 120`,
+		`lmstudio_context_utilization_ratio_last{model="qwen/test"} 0.12`,
 		`lmstudio_tokens_per_second_last{model="qwen/test"} 25`,
 		`lmstudio_time_to_first_token_seconds_count{model="qwen/test"} 1`,
 	} {

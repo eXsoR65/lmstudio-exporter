@@ -117,6 +117,10 @@ Inference metrics:
 - `lmstudio_output_tokens_total{model}`
 - `lmstudio_reasoning_tokens_total{model}`
 - `lmstudio_accepted_draft_tokens_total{model}`
+- `lmstudio_input_tokens_last{model}`
+- `lmstudio_output_tokens_last{model}`
+- `lmstudio_context_tokens_last{model}`
+- `lmstudio_context_utilization_ratio_last{model}`
 - `lmstudio_tokens_per_second_last{model}`
 - `lmstudio_tokens_per_second{model}` (histogram)
 - `lmstudio_time_to_first_token_seconds{model}` (histogram)
@@ -134,6 +138,17 @@ Exporter self-monitoring:
 
 Some optional model and inference metrics appear only when the installed LM
 Studio version includes the corresponding fields in its CLI JSON output.
+
+The `*_last` token gauges describe the most recently completed prediction for
+which LM Studio reported the relevant token counts. `lmstudio_context_tokens_last`
+is input plus output tokens for that prediction.
+`lmstudio_context_utilization_ratio_last` divides that value by the configured
+model context length reported by `lms ps`.
+
+This ratio is a **context/KV-cache pressure proxy**, not a measurement of actual
+KV-cache memory allocation or live cache occupancy. It updates after a completed
+prediction and is emitted only when the exporter has both input-token data and a
+known context length for the model.
 
 ## Command-line options
 

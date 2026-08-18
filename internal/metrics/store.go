@@ -19,17 +19,25 @@ type ModelState struct {
 }
 
 type InferenceState struct {
-	RequestsTotal        uint64
-	InputTokensTotal     float64
-	OutputTokensTotal    float64
-	ReasoningTokensTotal float64
-	DraftTokensTotal     float64
-	LastTokensPerSecond  float64
-	HasLastTPS           bool
-	TPS                  *histogram
-	TTFT                 *histogram
-	ModelLoad            *histogram
-	Generation           *histogram
+	RequestsTotal               uint64
+	InputTokensTotal            float64
+	OutputTokensTotal           float64
+	ReasoningTokensTotal        float64
+	DraftTokensTotal            float64
+	LastInputTokens             float64
+	HasLastInputTokens          bool
+	LastOutputTokens            float64
+	HasLastOutputTokens         bool
+	LastContextTokens           float64
+	HasLastContextTokens        bool
+	LastContextUtilizationRatio float64
+	HasLastContextUtilization   bool
+	LastTokensPerSecond         float64
+	HasLastTPS                  bool
+	TPS                         *histogram
+	TTFT                        *histogram
+	ModelLoad                   *histogram
+	Generation                  *histogram
 }
 
 type Store struct {
@@ -140,9 +148,24 @@ func (s *Store) ObservePrediction(stats lms.PredictionStats) {
 	state.RequestsTotal++
 	if stats.HasInputTokens {
 		state.InputTokensTotal += stats.InputTokens
+		state.LastInputTokens = stats.InputTokens
+		state.HasLastInputTokens = true
+
+		contextTokens := stats.InputTokens
+		if stats.HasOutputTokens {
+			contextTokens += stats.OutputTokens
+		}
+		if model, ok := s.Models[stats.Model]; ok && model.ContextLength > 0 {
+			state.LastContextTokens = contextTokens
+			state.HasLastContextTokens = true
+			state.LastContextUtilizationRatio = contextTokens / model.ContextLength
+			state.HasLastContextUtilization = true
+		}
 	}
 	if stats.HasOutputTokens {
 		state.OutputTokensTotal += stats.OutputTokens
+		state.LastOutputTokens = stats.OutputTokens
+		state.HasLastOutputTokens = true
 	}
 	if stats.HasReasoningTokens {
 		state.ReasoningTokensTotal += stats.ReasoningTokens
@@ -199,6 +222,14 @@ type InferenceSnapshot struct {
 	OutputTokensTotal                float64
 	ReasoningTokensTotal             float64
 	DraftTokensTotal                 float64
+	LastInputTokens                  float64
+	HasLastInputTokens               bool
+	LastOutputTokens                 float64
+	HasLastOutputTokens              bool
+	LastContextTokens                float64
+	HasLastContextTokens             bool
+	LastContextUtilizationRatio      float64
+	HasLastContextUtilization        bool
 	LastTokensPerSecond              float64
 	HasLastTPS                       bool
 	TPS, TTFT, ModelLoad, Generation HistogramSnapshot
@@ -228,17 +259,25 @@ func (s *Store) Snapshot() Snapshot {
 	sort.Slice(snap.Models, func(i, j int) bool { return snap.Models[i].Identifier < snap.Models[j].Identifier })
 	for model, inf := range s.Inference {
 		snap.Inference[model] = InferenceSnapshot{
-			RequestsTotal:        inf.RequestsTotal,
-			InputTokensTotal:     inf.InputTokensTotal,
-			OutputTokensTotal:    inf.OutputTokensTotal,
-			ReasoningTokensTotal: inf.ReasoningTokensTotal,
-			DraftTokensTotal:     inf.DraftTokensTotal,
-			LastTokensPerSecond:  inf.LastTokensPerSecond,
-			HasLastTPS:           inf.HasLastTPS,
-			TPS:                  snapshotHistogram(inf.TPS),
-			TTFT:                 snapshotHistogram(inf.TTFT),
-			ModelLoad:            snapshotHistogram(inf.ModelLoad),
-			Generation:           snapshotHistogram(inf.Generation),
+			RequestsTotal:               inf.RequestsTotal,
+			InputTokensTotal:            inf.InputTokensTotal,
+			OutputTokensTotal:           inf.OutputTokensTotal,
+			ReasoningTokensTotal:        inf.ReasoningTokensTotal,
+			DraftTokensTotal:            inf.DraftTokensTotal,
+			LastInputTokens:             inf.LastInputTokens,
+			HasLastInputTokens:          inf.HasLastInputTokens,
+			LastOutputTokens:            inf.LastOutputTokens,
+			HasLastOutputTokens:         inf.HasLastOutputTokens,
+			LastContextTokens:           inf.LastContextTokens,
+			HasLastContextTokens:        inf.HasLastContextTokens,
+			LastContextUtilizationRatio: inf.LastContextUtilizationRatio,
+			HasLastContextUtilization:   inf.HasLastContextUtilization,
+			LastTokensPerSecond:         inf.LastTokensPerSecond,
+			HasLastTPS:                  inf.HasLastTPS,
+			TPS:                         snapshotHistogram(inf.TPS),
+			TTFT:                        snapshotHistogram(inf.TTFT),
+			ModelLoad:                   snapshotHistogram(inf.ModelLoad),
+			Generation:                  snapshotHistogram(inf.Generation),
 		}
 	}
 	return snap

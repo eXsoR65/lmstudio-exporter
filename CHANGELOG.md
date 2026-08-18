@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- Last-request input, output, and combined context-token gauges.
+- Context-utilization ratio for the most recently completed prediction as a
+  context/KV-cache pressure proxy.
+
 ## [0.1.1] - 2026-08-17
 
 ### Fixed

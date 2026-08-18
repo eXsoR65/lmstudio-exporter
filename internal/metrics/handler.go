@@ -70,6 +70,18 @@ func writeMetrics(w io.Writer, s Snapshot) {
 		fmt.Fprintf(w, "lmstudio_output_tokens_total{%s} %s\n", labels, float(inf.OutputTokensTotal))
 		fmt.Fprintf(w, "lmstudio_reasoning_tokens_total{%s} %s\n", labels, float(inf.ReasoningTokensTotal))
 		fmt.Fprintf(w, "lmstudio_accepted_draft_tokens_total{%s} %s\n", labels, float(inf.DraftTokensTotal))
+		if inf.HasLastInputTokens {
+			fmt.Fprintf(w, "lmstudio_input_tokens_last{%s} %s\n", labels, float(inf.LastInputTokens))
+		}
+		if inf.HasLastOutputTokens {
+			fmt.Fprintf(w, "lmstudio_output_tokens_last{%s} %s\n", labels, float(inf.LastOutputTokens))
+		}
+		if inf.HasLastContextTokens {
+			fmt.Fprintf(w, "lmstudio_context_tokens_last{%s} %s\n", labels, float(inf.LastContextTokens))
+		}
+		if inf.HasLastContextUtilization {
+			fmt.Fprintf(w, "lmstudio_context_utilization_ratio_last{%s} %s\n", labels, float(inf.LastContextUtilizationRatio))
+		}
 		if inf.HasLastTPS {
 			fmt.Fprintf(w, "lmstudio_tokens_per_second_last{%s} %s\n", labels, float(inf.LastTokensPerSecond))
 		}
@@ -95,6 +107,10 @@ func inferenceMetricHeaders(w io.Writer) {
 	metricHeader(w, "lmstudio_output_tokens_total", "Output tokens observed in completed predictions.", "counter")
 	metricHeader(w, "lmstudio_reasoning_tokens_total", "Reasoning output tokens observed in completed predictions when reported.", "counter")
 	metricHeader(w, "lmstudio_accepted_draft_tokens_total", "Accepted speculative-decoding draft tokens observed when reported.", "counter")
+	metricHeader(w, "lmstudio_input_tokens_last", "Input tokens in the most recently completed prediction that reported an input token count.", "gauge")
+	metricHeader(w, "lmstudio_output_tokens_last", "Output tokens in the most recently completed prediction that reported an output token count.", "gauge")
+	metricHeader(w, "lmstudio_context_tokens_last", "Input plus output tokens for the most recently completed prediction with input-token data and a known model context length.", "gauge")
+	metricHeader(w, "lmstudio_context_utilization_ratio_last", "Context-pressure proxy for the most recently completed prediction: input plus output tokens divided by configured model context length.", "gauge")
 	metricHeader(w, "lmstudio_tokens_per_second_last", "Token generation speed for the most recently completed prediction.", "gauge")
 	metricHeader(w, "lmstudio_tokens_per_second", "Distribution of token generation speed for completed predictions.", "histogram")
 	metricHeader(w, "lmstudio_time_to_first_token_seconds", "Distribution of time to first token for completed predictions.", "histogram")
